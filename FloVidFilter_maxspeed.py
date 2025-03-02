@@ -18,6 +18,12 @@ warnings.filterwarnings("ignore", category=FutureWarning, message="Importing fro
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Configuration
+frame_skip = 10  # Process every N frames
+exclude_labels = ["human head", "man", "person", "human face", "woman", "helmet", "hat", "footwear", "human hand","human mouth", "human eye", "human eyes", 'jacket', 'hand', 'sneaker', 'sneakers']
+frames_per_part_percentage = 10 # Process in 10% chunks
+output_folder = "filtered_output" # Output folder for filtered video parts and labels
+
 def process_frame(frame, model, processor, device):
     """
     Process a single frame to detect objects (without drawing bounding boxes).
@@ -66,9 +72,6 @@ def process_frame(frame, model, processor, device):
     logging.debug("Ending process_frame")
     return frame, num_objects, labels
 
-# Set the frame skip interval
-frame_skip = 10  # Process every 5 frames
-
 def main(video_path):
     logging.debug("Starting main")
 
@@ -106,9 +109,14 @@ def main(video_path):
     # Generate a timestamped output video file name
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     video_base_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path_base = f"{video_base_name}_filtered_{timestamp}"
+    output_path_base = os.path.join(output_folder, f"{video_base_name}_filtered_{timestamp}") # Use output_folder
     output_path = f"{output_path_base}.mp4"  # Initial output path
     logging.debug(f"Output video base path: {output_path_base}")
+
+    # Create the output folder if it doesn't exist
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+        logging.debug(f"Created output folder: {output_folder}")
 
     # Create a VideoWriter object to save the output video
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -118,10 +126,8 @@ def main(video_path):
     frame_counter = 0
     saved_frame_counter = 0
     part_counter = 1
-    frames_per_part = total_frames // 1  # Process in 10% chunks
+    frames_per_part = total_frames // (100 // frames_per_part_percentage)
 
-    # List of specified labels to exclude
-    exclude_labels = ["human head", "man", "person", "human face", "woman", "helmet", "hat", "footwear", "human hand","human mouth", "human eye", "human eyes", 'jacket', 'hand', 'sneaker', 'sneakers']
     logging.debug(f"Excluding labels: {exclude_labels}")
 
     # Queue to hold saved frames
