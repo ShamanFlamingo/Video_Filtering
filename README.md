@@ -42,6 +42,12 @@ This document describes the `FloVidFilter_maxspeed.py` script, a Python applicat
 *   `queue`
 *   `json`
 
+To install PyTorch with CUDA 11.8 support, use the following command:
+
+```bash
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
 ## 3. Design
 
 ### 3.1. Architecture
